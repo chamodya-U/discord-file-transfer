@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+  <body>
+    <h1>Discord File Transfer</h1>
+
+    <button id="choose">Choose Video</button>
+
+    <p id="selected"></p>
+
+    <button id="upload">Upload</button>
+
+    <script>
+      let selectedPath = null;
+
+      document.getElementById("choose").onclick = async () => {
+        selectedPath = await window.electronAPI.selectFile();
+
+        if (selectedPath) {
+          document.getElementById("selected").innerText = selectedPath;
+        }
+      };
+
+      document.getElementById("upload").onclick = () => {
+        //const password = document.getElementById("password").value;
+
+        window.electronAPI.uploadFile({
+          path: selectedPath,
+          password: "password",
+        });
+      };
+    </script>
+  </body>
+</html>
