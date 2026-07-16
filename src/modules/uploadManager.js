@@ -63,7 +63,11 @@ class UploadManager extends EventEmitter {
     while (this.uploadQueue.length > 0) {
       const file = this.uploadQueue.shift();
 
-      await this.uploadPreparedFile(file);
+      try {
+        await this.uploadPreparedFile(file);
+      } catch (err) {
+        console.error("Upload failed:", file.fileId, err.message);
+      }
     }
 
     this.isUploading = false;
@@ -72,25 +76,26 @@ class UploadManager extends EventEmitter {
   async uploadPreparedFile(prepared) {
     console.log("Uploading:", prepared.fileId);
 
-    const metadata = JSON.parse(fs.readFileSync(prepared.metadataPath));
+    const metadata = JSON.parse(fs.readFileSync(prepared.metadataPath, "utf8"));
 
     for (let index = 0; index < prepared.totalChunks; index++) {
+      if (metadata.chunks[index]) {
+        console.log(`Skipping chunk ${index}`);
+        continue;
+      }
+
       const chunkPath = path.join(
         prepared.outputDir,
         `${prepared.fileId}_${index}.json`,
       );
 
       //uploading
-      const message = await uploadFile(
-        process.env.DISCORD_CHANNEL_ID,
-        chunkPath,
-      );
+      const message = await this.uploadChunkWithRetry(chunkPath);
 
-      metadata.chunks.push({
+      metadata.chunks[index] = {
         index,
-
         messageId: message.id,
-      });
+      };
 
       fs.unlinkSync(chunkPath);
 
@@ -105,6 +110,20 @@ class UploadManager extends EventEmitter {
     });
 
     console.log("Finished:", prepared.fileId);
+  }
+
+  async uploadChunkWithRetry(chunkPath, retries = 3) {
+    for (let attempt = 1; attempt <= retries; attempt++) {
+      try {
+        return await uploadFile(process.env.DISCORD_CHANNEL_ID, chunkPath);
+      } catch (err) {
+        console.log(`Attempt ${attempt} failed`);
+
+        if (attempt === retries) throw err;
+
+        await new Promise((r) => setTimeout(r, 2000));
+      }
+    }
   }
 }
 

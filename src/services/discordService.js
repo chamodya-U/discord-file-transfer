@@ -26,16 +26,6 @@ async function uploadFile(channelId, filePath) {
 
   let uploaded = 0;
 
-  const stream = fs.createReadStream(filePath);
-
-  stream.on("data", (chunk) => {
-    uploaded += chunk.length;
-
-    const percent = ((uploaded / fileSize) * 100).toFixed(2);
-
-    process.stdout.write(`\rUploading: ${percent}% `);
-  });
-
   try {
     const message = await channel.send({
       files: [filePath],
