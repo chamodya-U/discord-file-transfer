@@ -2,9 +2,7 @@ const { app, BrowserWindow, ipcMain, dialog, Menu } = require("electron");
 const fs = require("fs");
 const path = require("path");
 require("dotenv").config();
-const { assembleChunks } = require("./src/modules/assembler");
-const { processUpload } = require("./src/modules/uploadProcessor");
-const { encryptChunk, decryptChunk } = require("./src/modules/crypto");
+const uploadManager = require("./src/modules/uploadManager");
 const { login } = require("./src/services/discordService");
 
 function createWindow() {
@@ -24,18 +22,22 @@ function createWindow() {
 //get input file
 ipcMain.handle("select-file", async () => {
   const result = await dialog.showOpenDialog({
-    properties: ["openFile"],
+    properties: ["openFile", "multiSelections"],
   });
 
   if (result.canceled) {
     return null;
   }
 
-  return result.filePaths[0];
+  return result.filePaths;
 });
 
-ipcMain.on("upload-file", async (event, data) => {
-  await processUpload(data.path, data.password);
+ipcMain.on("upload-file", (event, data) => {
+  try {
+    uploadManager.addFiles(data.files, process.env.UPLOAD_PASSWORD);
+  } catch (err) {
+    console.error("Upload failed:", err);
+  }
 });
 
 app.whenReady().then(async () => {

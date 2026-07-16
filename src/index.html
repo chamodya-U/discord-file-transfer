@@ -1,40 +1,30 @@
 <!doctype html>
 <html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <title>My App</title>
-      <link rel="stylesheet" href="style.css" />
-    </head>
-    <body>
-      <h1>Discord File Transfer</h1>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Discord File Transfer</title>
 
-      <button id="choose">Choose Video</button>
+    <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/pages.css" />
+  </head>
+  <body>
+    <div id="container">
+      <aside id="sidebar">
+        <button id="uploadBtn">Upload</button>
+        <button id="downloadBtn">Download</button>
+        <button id="historyBtn">History</button>
+        <button id="settingsBtn">Settings</button>
+      </aside>
 
-      <p id="selected"></p>
+      <main id="content"></main>
+    </div>
 
-      <button id="upload">Upload</button>
+    <script src="js/upload.js"></script>
+    <script src="js/download.js"></script>
+    <script src="js/history.js"></script>
+    <script src="js/settings.js"></script>
 
-      <script>
-        let selectedPath = null;
-
-        document.getElementById("choose").onclick = async () => {
-          selectedPath = await window.electronAPI.selectFile();
-
-          if (selectedPath) {
-            document.getElementById("selected").innerText = selectedPath;
-          }
-        };
-
-        document.getElementById("upload").onclick = () => {
-          //const password = document.getElementById("password").value;
-
-          window.electronAPI.uploadFile({
-            path: selectedPath,
-            password: "password",
-          });
-        };
-      </script>
-    </body>
-  </html>
+    <script src="js/app.js"></script>
+  </body>
 </html>

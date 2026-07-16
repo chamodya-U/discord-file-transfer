@@ -1,0 +1,33 @@
+<div class="page">
+  <h1>Download</h1>
+
+  <div class="card">
+    <label>Metadata File</label>
+    <input
+      type="text"
+      id="metadataFile"
+      placeholder="Select metadata file"
+      readonly
+    />
+
+    <button id="browseMetadata">Browse...</button>
+  </div>
+
+  <div class="card">
+    <label>Password</label>
+    <input
+      type="password"
+      id="downloadPassword"
+      placeholder="Decryption password"
+    />
+  </div>
+
+  <div class="card">
+    <button id="downloadButton">Download</button>
+  </div>
+
+  <div class="card">
+    <progress id="downloadProgress" value="0" max="100"></progress>
+    <p id="downloadStatus">Ready</p>
+  </div>
+</div>
