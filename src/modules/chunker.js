@@ -1,7 +1,7 @@
 const fs = require("fs");
 
 //default file size
-const size = 8;
+const size = 7;
 
 function splitFile(path, chunkSize = size * 1024 * 1024) {
   const buffer = fs.readFileSync(path);

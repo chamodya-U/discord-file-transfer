@@ -1,5 +1,6 @@
 # Dependencies
 node_modules/
+file-transfer
 
 # Environment variables
 .env
@@ -30,3 +31,4 @@ release/
 # Generated files
 chunks/
 recovered.mp4
+test*

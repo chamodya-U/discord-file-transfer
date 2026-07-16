@@ -15,6 +15,17 @@ function assembleChunks(chunkFolder, outputFile, totalChunks) {
   writeStream.end();
 }
 
+function assembleBuffers(chunks, outputFile) {
+  const writeStream = fs.createWriteStream(outputFile);
+
+  chunks.forEach((chunk) => {
+    writeStream.write(chunk);
+  });
+
+  writeStream.end();
+}
+
 module.exports = {
   assembleChunks,
+  assembleBuffers,
 };

@@ -3,25 +3,23 @@ const { splitFile } = require("./chunker");
 const { encryptChunk } = require("./crypto");
 const fs = require("fs");
 const path = require("path");
+const { uploadFile } = require("../services/discordService");
 
-function processUpload(filePath, password) {
-  //create output path
-  const outputDir = path.join(process.cwd(), "chunks");
+async function processUpload(filePath, password) {
+  const fileId = crypto.randomUUID();
 
-  // Create chunks folder if it doesn't exist
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
+  const outputDir = path.join(process.cwd(), "file-transfer/temp", fileId);
+  const databaseDir = path.join(process.cwd(), "file-transfer/database");
 
-  // Split
-  const chunks = splitFile(filePath); // default 8 MB
+  fs.mkdirSync(outputDir, { recursive: true });
+  fs.mkdirSync(databaseDir, { recursive: true });
 
-  console.log("Total chunks:", chunks.length);
+  const metadataPath = path.join(databaseDir, `${fileId}_metadata.json`);
 
-  // Encrypt
+  const chunks = splitFile(filePath);
+
   const salt = crypto.randomBytes(16);
   const key = crypto.scryptSync(password, salt, 32);
-  const fileId = crypto.randomUUID();
 
   const metadata = {
     fileId: fileId,
@@ -29,17 +27,23 @@ function processUpload(filePath, password) {
     totalChunks: chunks.length,
     salt: salt.toString("base64"),
     algorithm: "aes-256-gcm",
+    createdAt: new Date().toISOString(),
+    chunks: [],
   };
 
-  chunks.forEach((chunk, index) => {
+  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+
+  for (let index = 0; index < chunks.length; index++) {
+    const chunk = chunks[index];
+
     try {
       const encryptedData = encryptChunk(chunk, key);
 
       const chunkPath = path.join(outputDir, `${fileId}_${index}.json`);
 
       const output = {
-        fileId: fileId,
-        index: index,
+        fileId,
+        index,
         iv: encryptedData.iv.toString("base64"),
         authTag: encryptedData.authTag.toString("base64"),
         data: encryptedData.encrypted.toString("base64"),
@@ -47,17 +51,30 @@ function processUpload(filePath, password) {
 
       fs.writeFileSync(chunkPath, JSON.stringify(output));
 
-      console.log(`Encrypted chunk ${index}`);
+      const message = await uploadFile(
+        process.env.DISCORD_CHANNEL_ID,
+        chunkPath,
+      );
+
+      metadata.chunks.push({
+        index,
+        messageId: message.id,
+      });
+
+      fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+
+      //fs.unlinkSync(chunkPath);
+
+      console.log(`Uploaded chunk ${index}`);
     } catch (err) {
-      console.error(err.message);
+      console.error(`Chunk ${index} failed:`, err.message);
 
-      // tell UI upload failed
+      return {
+        fileId,
+        metadataPath,
+      };
     }
-  });
-
-  const metadataPath = path.join(outputDir, `${fileId}_metadata.json`);
-
-  fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
+  }
 
   // Save
   // Later: Upload to Discord
