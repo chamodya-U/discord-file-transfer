@@ -1,8 +1,11 @@
 const { app, BrowserWindow, ipcMain, dialog } = require("electron");
 const fs = require("fs");
 const path = require("path");
-const { splitFile } = require("./src/modules/chunker");
+/* const crypto = require("crypto");
+const { splitFile } = require("./src/modules/chunker"); */
 const { assembleChunks } = require("./src/modules/assembler");
+const { processUpload } = require("./src/modules/uploadProcessor");
+const { encryptChunk, decryptChunk } = require("./src/modules/crypto");
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -17,6 +20,7 @@ function createWindow() {
   win.loadFile("src/index.html");
 }
 
+//get input file
 ipcMain.handle("select-file", async () => {
   const result = await dialog.showOpenDialog({
     properties: ["openFile"],
@@ -30,35 +34,20 @@ ipcMain.handle("select-file", async () => {
 });
 
 ipcMain.on("upload-file", (event, data) => {
+  //conformation message
   console.log("Received from UI:");
   console.log(data);
 
-  const chunks = splitFile(data.path);
+  processUpload(data.path, data.password);
 
-  console.log("Total chunks:", chunks.length);
-
-  const outputDir = path.join(__dirname, "chunks");
-
-  // Create chunks folder if it doesn't exist
-  if (!fs.existsSync(outputDir)) {
-    fs.mkdirSync(outputDir);
-  }
-
-  chunks.forEach((chunk, index) => {
-    const chunkPath = path.join(outputDir, `chunk_${index}.bin`);
-
-    fs.writeFileSync(chunkPath, chunk);
-
-    console.log(`Saved chunk ${index}:`, chunk.length / 1024 / 1024, "MB");
-  });
-
-  assembleChunks(
+  //just a test
+  /*   assembleChunks(
     outputDir,
     path.join(__dirname, "recovered.mp4"),
     chunks.length,
   );
 
-  console.log("File reassembled!");
+  console.log("File reassembled!"); */
 });
 
 app.whenReady().then(() => {
