@@ -4,7 +4,7 @@ const { encryptChunk } = require("./crypto");
 const fs = require("fs");
 const path = require("path");
 
-async function processUpload(filePath, password) {
+async function processUpload(filePath, password, onProgress) {
   const fileId = crypto.randomUUID();
 
   const outputDir = path.join(process.cwd(), "file-transfer/temp", fileId);
@@ -15,8 +15,9 @@ async function processUpload(filePath, password) {
 
   const stream = readChunks(filePath);
   const stats = fs.statSync(filePath);
+  const size = 7;
 
-  const totalChunks = Math.ceil(stats.size / (8 * 1024 * 1024));
+  const totalChunks = Math.ceil(stats.size / (size * 1024 * 1024));
 
   const salt = crypto.randomBytes(16);
   const key = crypto.scryptSync(password, salt, 32);
@@ -63,6 +64,13 @@ async function processUpload(filePath, password) {
           data: encrypted.encrypted.toString("base64"),
         }),
       );
+
+      onProgress({
+        status: "splitting",
+        fileId,
+        current: index + 1,
+        totalChunks,
+      });
 
       index++;
     } catch (err) {

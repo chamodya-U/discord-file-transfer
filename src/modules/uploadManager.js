@@ -42,13 +42,13 @@ class UploadManager extends EventEmitter {
 
       console.log("Splitting:", job.file);
 
-      const prepared = await processUpload(job.file, job.password);
-
-      this.emit("progress", {
-        fileId: prepared.fileId,
-        fileName: path.basename(job.file),
-        status: "splitting",
-      });
+      const prepared = await processUpload(
+        job.file,
+        job.password,
+        (progress) => {
+          this.emit("progress", progress);
+        },
+      );
 
       this.uploadQueue.push(prepared);
 

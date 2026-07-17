@@ -33,6 +33,10 @@ progress {
   display: none;
 }
 
+#upload-status {
+  display: none;
+}
+
 .history-table {
   width: 100%;
   border-collapse: collapse;
