@@ -8,11 +8,16 @@ const client = new Client({
 let ready = false;
 
 async function login(token) {
-  await client.login(token);
+  try {
+    await client.login(token);
 
-  ready = true;
+    ready = true;
 
-  console.log(`Logged in as ${client.user.tag}`);
+    console.log(`Logged in as ${client.user.tag}`);
+  } catch (err) {
+    console.error("Login error:", err.message);
+    throw err;
+  }
 }
 
 async function uploadFile(channelId, filePath) {
@@ -23,8 +28,6 @@ async function uploadFile(channelId, filePath) {
   const channel = await client.channels.fetch(channelId);
 
   const fileSize = fs.statSync(filePath).size;
-
-  let uploaded = 0;
 
   try {
     const message = await channel.send({

@@ -44,6 +44,12 @@ class UploadManager extends EventEmitter {
 
       const prepared = await processUpload(job.file, job.password);
 
+      this.emit("progress", {
+        fileId: prepared.fileId,
+        fileName: path.basename(job.file),
+        status: "splitting",
+      });
+
       this.uploadQueue.push(prepared);
 
       console.log("Ready:", prepared.fileId);
@@ -92,6 +98,16 @@ class UploadManager extends EventEmitter {
       //uploading
       const message = await this.uploadChunkWithRetry(chunkPath);
 
+      // Notify UI
+      this.emit("progress", {
+        fileId: prepared.fileId,
+        fileName: metadata.fileName,
+        uploadedChunks: index + 1,
+        totalChunks: prepared.totalChunks,
+        percent: Math.round(((index + 1) / prepared.totalChunks) * 100),
+        status: "uploading",
+      });
+
       metadata.chunks[index] = {
         index,
         messageId: message.id,
@@ -107,6 +123,12 @@ class UploadManager extends EventEmitter {
     fs.rmSync(prepared.outputDir, {
       recursive: true,
       force: true,
+    });
+
+    this.emit("progress", {
+      fileId: prepared.fileId,
+      fileName: metadata.fileName,
+      status: "completed",
     });
 
     console.log("Finished:", prepared.fileId);

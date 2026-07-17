@@ -26,6 +26,13 @@ html,
 body {
   height: 100%;
   font-family: "Open Sans", sans-serif;
+  background-color: #202429;
+  color: white;
+}
+
+button {
+  background-color: #6b6d70;
+  color: white;
 }
 
 #container {

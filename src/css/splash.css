@@ -1,0 +1,41 @@
+body {
+  margin: 0;
+  background: #202225;
+  color: white;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  height: 100vh;
+
+  font-family: sans-serif;
+}
+
+.container {
+  text-align: center;
+}
+
+.spinner {
+  width: 60px;
+  height: 60px;
+
+  border: 6px solid #444;
+  border-top: 6px solid #5865f2;
+
+  border-radius: 50%;
+
+  animation: spin 1s linear infinite;
+
+  margin: auto auto 20px;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}

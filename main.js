@@ -5,6 +5,27 @@ require("dotenv").config();
 const uploadManager = require("./src/modules/uploadManager");
 const { login } = require("./src/services/discordService");
 
+let splashWindow;
+let mainWindow;
+
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 450,
+    height: 300,
+    frame: false,
+    resizable: false,
+    maximizable: false,
+    minimizable: false,
+    fullscreenable: false,
+    alwaysOnTop: true,
+    webPreferences: {
+      preload: path.join(__dirname, "preload.js"),
+    },
+  });
+
+  splashWindow.loadFile("src/splash.html");
+}
+
 function createWindow() {
   const win = new BrowserWindow({
     width: 800,
@@ -14,6 +35,11 @@ function createWindow() {
       preload: path.join(__dirname, "preload.js"),
     },
   });
+
+  uploadManager.on("progress", (progress) => {
+    win.webContents.send("upload-progress", progress);
+  });
+
   Menu.setApplicationMenu(null);
 
   win.loadFile("src/index.html");
@@ -41,7 +67,16 @@ ipcMain.on("upload-file", (event, data) => {
 });
 
 app.whenReady().then(async () => {
-  await login(process.env.DISCORD_TOKEN);
+  createSplashWindow();
 
-  createWindow();
+  try {
+    await login(process.env.DISCORD_TOKEN);
+
+    createWindow();
+
+    splashWindow.close();
+  } catch (err) {
+    console.error(err);
+    splashWindow.webContents.send("discord-error", err.message);
+  }
 });

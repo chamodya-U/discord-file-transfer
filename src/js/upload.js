@@ -4,6 +4,8 @@ async function initUploadPage() {
   const browseButton = document.getElementById("browseButton");
   const uploadButton = document.getElementById("uploadButton");
   const fileInput = document.getElementById("selectedFile");
+  const progressBar = document.getElementById("uploadProgress");
+  const status = document.getElementById("status");
 
   browseButton.onclick = async () => {
     const files = await window.electronAPI.selectFile();
@@ -27,4 +29,15 @@ async function initUploadPage() {
       files: selectedFiles,
     });
   };
+
+  window.electronAPI.onUploadProgress((progress) => {
+    if (progress.status == "uploading") {
+      progressBar.style.display = "block";
+      progressBar.value = progress.percent;
+      status.textContent = `${progress.fileName} (${progress.uploadedChunks}/${progress.totalChunks})`;
+    } else {
+      progressBar.style.display = "none";
+      status.textContent = `${progress.status}`;
+    }
+  });
 }

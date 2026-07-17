@@ -29,6 +29,10 @@ progress {
   width: 100%;
 }
 
+#uploadProgress {
+  display: none;
+}
+
 .history-table {
   width: 100%;
   border-collapse: collapse;
